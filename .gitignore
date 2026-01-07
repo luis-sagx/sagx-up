@@ -48,3 +48,21 @@ app.*.map.json
 lib/firebase_options.dart
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+ios/firebase_app_id_file.json
+
+# Web Firebase config
+web/index.html
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+*.jks
+keystore.properties
+
+# IDE specific
+.vscode/settings.json
+.fleet/
