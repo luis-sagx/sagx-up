@@ -18,6 +18,7 @@ class UserService {
           name: data['name'] ?? '',
           email: data['email'] ?? '',
           level: data['level'] ?? 'Principiante',
+          points: data['points'] ?? 0,
           createdAt: (data['createdAt'] as Timestamp).toDate(),
         );
       }
@@ -36,6 +37,7 @@ class UserService {
           name: data['name'] ?? '',
           email: data['email'] ?? '',
           level: data['level'] ?? 'Principiante',
+          points: data['points'] ?? 0,
           createdAt: (data['createdAt'] as Timestamp).toDate(),
         );
       }
