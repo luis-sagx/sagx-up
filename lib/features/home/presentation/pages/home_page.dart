@@ -8,6 +8,11 @@ import '../../../transactions/presentation/pages/add_income_page.dart';
 import '../../../analytics/presentation/pages/statistics_page.dart';
 import '../../../achievements/presentation/pages/achievements_page.dart';
 import '../../../profile/presentation/pages/edit_profile_page.dart';
+import '../../../ai_assistant/presentation/pages/ai_assistant_page.dart';
+import '../../../../services/transaction_service.dart';
+import '../../../../models/expense_model.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,13 +24,20 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final service = FirebaseService();
   final userService = UserService();
+  final transactionService = TransactionService();
   int _selectedIndex = 0;
   AppUser? appUser;
   bool isLoadingUser = true;
+  double totalBalance = 0.0;
+  double totalIncome = 0.0;
+  double totalExpense = 0.0;
+  List<dynamic> recentTransactions = []; // Mix of Expense and Income
+  bool isLoadingTransactions = true;
 
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting('es', null);
     _loadUser();
   }
 
@@ -38,6 +50,42 @@ class _HomePageState extends State<HomePage> {
           appUser = userData;
           isLoadingUser = false;
         });
+      }
+      // Load transaction data
+      await _loadTransactionData();
+    }
+  }
+
+  Future<void> _loadTransactionData() async {
+    final user = service.currentUser;
+    if (user == null) return;
+
+    if (mounted) {
+      setState(() => isLoadingTransactions = true);
+    }
+
+    try {
+      final summary = await transactionService.getMonthSummary(user.uid);
+      final expenses = await transactionService.getUserExpenses(user.uid);
+      final incomes = await transactionService.getUserIncomes(user.uid);
+
+      // Combine and sort by date
+      final List<dynamic> combined = [...expenses, ...incomes];
+      combined.sort((a, b) => b.date.compareTo(a.date));
+
+      if (mounted) {
+        setState(() {
+          totalBalance = summary['balance'] ?? 0.0;
+          totalIncome = summary['totalIncomes'] ?? 0.0;
+          totalExpense = summary['totalExpenses'] ?? 0.0;
+          recentTransactions = combined.take(5).toList(); // Only 5 most recent
+          isLoadingTransactions = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading transactions: $e');
+      if (mounted) {
+        setState(() => isLoadingTransactions = false);
       }
     }
   }
@@ -227,6 +275,17 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AIAssistantPage()),
+          );
+        },
+        backgroundColor: AppTheme.accentColor,
+        child: const Icon(Icons.auto_awesome, color: Colors.white),
+        tooltip: 'Asistente IA',
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -355,46 +414,60 @@ class _HomePageState extends State<HomePage> {
                       width: 1,
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Balance Total',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        '\$0.00',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
+                  child: isLoadingTransactions
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Balance Total',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '\$${totalBalance.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: totalBalance >= 0
+                                    ? Colors.white
+                                    : Colors.red.shade200,
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildBalanceItem(
+                                    'Ingresos',
+                                    '\$${totalIncome.toStringAsFixed(0)}',
+                                    Icons.arrow_downward,
+                                    AppTheme.secondaryColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildBalanceItem(
+                                    'Gastos',
+                                    '\$${totalExpense.toStringAsFixed(0)}',
+                                    Icons.arrow_upward,
+                                    AppTheme.accentColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildBalanceItem(
-                              'Ingresos',
-                              '\$0',
-                              Icons.arrow_downward,
-                              AppTheme.secondaryColor,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildBalanceItem(
-                              'Gastos',
-                              '\$0',
-                              Icons.arrow_upward,
-                              AppTheme.accentColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),
@@ -464,11 +537,25 @@ class _HomePageState extends State<HomePage> {
                       'Transacciones recientes',
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                    TextButton(onPressed: () {}, child: const Text('Ver todo')),
+                    TextButton(
+                      onPressed: () => setState(() => _selectedIndex = 1),
+                      child: const Text('Ver todo'),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildEmptyState(),
+                isLoadingTransactions
+                    ? const Center(child: CircularProgressIndicator())
+                    : recentTransactions.isEmpty
+                    ? _buildEmptyState()
+                    : Column(
+                        children: recentTransactions
+                            .map(
+                              (transaction) =>
+                                  _buildTransactionItem(transaction),
+                            )
+                            .toList(),
+                      ),
               ],
             ),
           ),
@@ -701,6 +788,72 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionItem(dynamic transaction) {
+    final bool isExpense = transaction is Expense;
+    final String title = isExpense ? transaction.category : transaction.source;
+    final double amount = isExpense ? transaction.amount : transaction.amount;
+    final DateTime date = transaction.date;
+    final Color color = isExpense
+        ? AppTheme.accentColor
+        : AppTheme.secondaryColor;
+    final IconData icon = isExpense ? Icons.arrow_upward : Icons.arrow_downward;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  DateFormat('d MMM yyyy', 'es').format(date),
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '${isExpense ? '-' : '+'}\$${amount.toStringAsFixed(2)}',
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }
