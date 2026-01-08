@@ -7,8 +7,11 @@ class Achievement {
   final String description;
   final String icon; // Nombre del icono
   final int points;
-  final DateTime unlockedAt;
+  final DateTime? unlockedAt;
   final String category; // 'streak', 'budget', 'savings', 'milestone'
+  final String type; // Type for icon identification
+
+  bool get isUnlocked => unlockedAt != null;
 
   Achievement({
     this.id,
@@ -17,9 +20,10 @@ class Achievement {
     required this.description,
     required this.icon,
     required this.points,
-    DateTime? unlockedAt,
+    this.unlockedAt,
     required this.category,
-  }) : unlockedAt = unlockedAt ?? DateTime.now();
+    this.type = '',
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -28,8 +32,9 @@ class Achievement {
       'description': description,
       'icon': icon,
       'points': points,
-      'unlockedAt': Timestamp.fromDate(unlockedAt),
+      'unlockedAt': unlockedAt != null ? Timestamp.fromDate(unlockedAt!) : null,
       'category': category,
+      'type': type,
     };
   }
 
@@ -41,8 +46,35 @@ class Achievement {
       description: map['description'] ?? '',
       icon: map['icon'] ?? 'emoji_events',
       points: map['points'] ?? 0,
-      unlockedAt: (map['unlockedAt'] as Timestamp).toDate(),
+      unlockedAt: map['unlockedAt'] != null
+          ? (map['unlockedAt'] as Timestamp).toDate()
+          : null,
       category: map['category'] ?? 'milestone',
+      type: map['type'] ?? '',
+    );
+  }
+
+  Achievement copyWith({
+    String? id,
+    String? userId,
+    String? title,
+    String? description,
+    String? icon,
+    int? points,
+    DateTime? unlockedAt,
+    String? category,
+    String? type,
+  }) {
+    return Achievement(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      icon: icon ?? this.icon,
+      points: points ?? this.points,
+      unlockedAt: unlockedAt ?? this.unlockedAt,
+      category: category ?? this.category,
+      type: type ?? this.type,
     );
   }
 }

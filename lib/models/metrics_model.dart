@@ -84,4 +84,34 @@ class FinancialMetrics {
 
     return score.clamp(0, 100).round();
   }
+
+  FinancialMetrics copyWith({
+    String? id,
+    String? userId,
+    double? totalExpenses,
+    double? totalIncome,
+    double? savings,
+    double? impulsiveExpensesPercentage,
+    double? budgetCompliancePercentage,
+    int? controlScore,
+    String? period,
+    String? month,
+    DateTime? calculatedAt,
+  }) {
+    return FinancialMetrics(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      totalExpenses: totalExpenses ?? this.totalExpenses,
+      totalIncome: totalIncome ?? this.totalIncome,
+      savings: savings ?? this.savings,
+      impulsiveExpensesPercentage:
+          impulsiveExpensesPercentage ?? this.impulsiveExpensesPercentage,
+      budgetCompliancePercentage:
+          budgetCompliancePercentage ?? this.budgetCompliancePercentage,
+      controlScore: controlScore ?? this.controlScore,
+      period: period ?? this.period,
+      month: month ?? this.month,
+      calculatedAt: calculatedAt ?? this.calculatedAt,
+    );
+  }
 }

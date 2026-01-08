@@ -6,6 +6,7 @@ class Expense {
   final double amount;
   final String category;
   final DateTime date;
+  final String month; // Formato: "2026-01"
   final String description;
   final bool isImpulsive; // Indicador de gasto impulsivo
 
@@ -15,9 +16,10 @@ class Expense {
     required this.amount,
     required this.category,
     required this.date,
+    String? month,
     required this.description,
     this.isImpulsive = false,
-  });
+  }) : month = month ?? '${date.year}-${date.month.toString().padLeft(2, '0')}';
 
   Map<String, dynamic> toMap() {
     return {
@@ -25,18 +27,23 @@ class Expense {
       'amount': amount,
       'category': category,
       'date': Timestamp.fromDate(date),
+      'month': month,
       'description': description,
       'isImpulsive': isImpulsive,
     };
   }
 
   factory Expense.fromMap(Map<String, dynamic> map, String id) {
+    final date = (map['date'] as Timestamp).toDate();
     return Expense(
       id: id,
       userId: map['userId'] ?? '',
       amount: (map['amount'] ?? 0).toDouble(),
       category: map['category'] ?? '',
-      date: (map['date'] as Timestamp).toDate(),
+      date: date,
+      month:
+          map['month'] ??
+          '${date.year}-${date.month.toString().padLeft(2, '0')}',
       description: map['description'] ?? '',
       isImpulsive: map['isImpulsive'] ?? false,
     );
@@ -48,6 +55,7 @@ class Expense {
     double? amount,
     String? category,
     DateTime? date,
+    String? month,
     String? description,
     bool? isImpulsive,
   }) {
@@ -57,6 +65,7 @@ class Expense {
       amount: amount ?? this.amount,
       category: category ?? this.category,
       date: date ?? this.date,
+      month: month ?? this.month,
       description: description ?? this.description,
       isImpulsive: isImpulsive ?? this.isImpulsive,
     );

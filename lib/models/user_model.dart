@@ -3,6 +3,7 @@ class AppUser {
   final String name;
   final String email;
   final String level;
+  final int points;
   final DateTime createdAt;
 
   AppUser({
@@ -10,6 +11,7 @@ class AppUser {
     required this.name,
     required this.email,
     required this.level,
+    this.points = 0,
     required this.createdAt,
   });
 
@@ -18,6 +20,7 @@ class AppUser {
       'name': name,
       'email': email,
       'level': level,
+      'points': points,
       'createdAt': createdAt,
     };
   }
