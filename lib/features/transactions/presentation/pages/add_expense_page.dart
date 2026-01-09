@@ -3,8 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/firebase_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../models/expense_model.dart';
-import '../../../../services/transaction_service.dart';
-import '../../../../services/gamification_service.dart';
+import '../../data/transaction_service.dart';
+import '../../../achievements/data/gamification_service.dart';
 
 class AddExpensePage extends StatefulWidget {
   const AddExpensePage({Key? key}) : super(key: key);

@@ -3,8 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/firebase_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../models/income_model.dart';
-import '../../../../services/transaction_service.dart';
-import '../../../../services/gamification_service.dart';
+import '../../data/transaction_service.dart';
+import '../../../achievements/data/gamification_service.dart';
 
 class AddIncomePage extends StatefulWidget {
   const AddIncomePage({Key? key}) : super(key: key);
