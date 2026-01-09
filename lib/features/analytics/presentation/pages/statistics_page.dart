@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/firebase_service.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../services/transaction_service.dart';
-import '../../../../services/budget_service.dart';
-import '../../../../services/metrics_service.dart';
+import '../../../transactions/data/transaction_service.dart';
+import '../../../budget/data/budget_service.dart';
+import '../../data/metrics_service.dart';
 import '../../../budget/presentation/pages/add_budget_page.dart';
 
 class StatisticsPage extends StatefulWidget {
