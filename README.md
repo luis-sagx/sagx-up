@@ -1,6 +1,6 @@
-# 💰 Control Financiero Universitario
+# 💰 Control Financiero Universitario SAGX-UP
 
-> Aplicación móvil multiplataforma para gestionar finanzas personales de estudiantes universitarios mediante IA, gamificación y métricas inteligentes.
+Aplicación móvil multiplataforma para gestionar finanzas personales de estudiantes universitarios mediante IA, gamificación y métricas inteligentes.
 
 ## 🎯 Objetivo del Proyecto
 
@@ -23,18 +23,16 @@ lib/
 │   ├── constants/          # Constantes
 │   └── services/           # Firebase, Auth
 ├── features/               # Módulos funcionales
-│   ├── auth/              # 🔐 Autenticación
-│   ├── transactions/      # 💰 Ingresos y Gastos
-│   ├── budget/            # 📊 Presupuestos
-│   ├── analytics/         # 📈 Métricas
-│   ├── achievements/      # 🏆 Gamificación
-│   └── ai_assistant/      # 🤖 IA
+│   ├── auth/              # Autenticación
+│   ├── transactions/      # Ingresos y Gastos
+│   ├── budget/            # Presupuestos
+│   ├── analytics/         # Métricas
+│   ├── achievements/      # Gamificación
+│   └── ai_assistant/      # IA
 └── shared/                # Componentes compartidos
     ├── models/
     └── widgets/
 ```
-
-Ver [ARCHITECTURE.md](ARCHITECTURE.md) para detalles completos.
 
 ## 🚀 Funcionalidades
 
@@ -52,10 +50,6 @@ Ver [ARCHITECTURE.md](ARCHITECTURE.md) para detalles completos.
 - 🔄 Gestión de presupuestos
 - 🔄 Dashboard con métricas
 - 🔄 Sistema de logros
-
-### 📋 Roadmap
-
-Ver [ROADMAP.md](ROADMAP.md) para el plan completo.
 
 ## 🛠️ Tecnologías
 
@@ -162,11 +156,3 @@ Este proyecto está en desarrollo activo. Sugerencias y contribuciones son bienv
 ## 📝 Licencia
 
 [MIT License](LICENSE)
-
-## 📧 Contacto
-
-Para preguntas sobre el proyecto: [tu-email]
-
----
-
-**Hecho con ❤️ para estudiantes universitarios**
