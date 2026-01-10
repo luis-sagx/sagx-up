@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import '../../../../core/services/firebase_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_exceptions.dart';
@@ -6,7 +7,8 @@ import '../../data/user_service.dart';
 import '../../../../models/user_model.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../shared/widgets/custom_button.dart';
-import '../../../home/presentation/pages/home_page.dart';
+import '../../../profile/presentation/pages/terms_conditions_page.dart';
+import '../../../survey/presentation/pages/survey_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -86,9 +88,12 @@ class _RegisterPageState extends State<RegisterPage> {
         await userService.createUser(appUser);
 
         if (mounted) {
+          // Redirigir a la encuesta PRE
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const HomePage()),
+            MaterialPageRoute(
+              builder: (_) => const SurveyPage(surveyType: 'PRE'),
+            ),
           );
         }
       }
@@ -281,12 +286,38 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 16),
 
                 // Términos y condiciones
-                Text(
-                  'Al registrarte, aceptas nuestros términos y condiciones',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontSize: 12),
-                  textAlign: TextAlign.center,
+                Center(
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(fontSize: 12),
+                      children: [
+                        const TextSpan(
+                          text: 'Al registrarte, aceptas nuestros ',
+                        ),
+                        TextSpan(
+                          text: 'términos y condiciones',
+                          style: TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const TermsConditionsPage(),
+                                ),
+                              );
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 16),

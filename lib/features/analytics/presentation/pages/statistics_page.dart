@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/services/firebase_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../transactions/data/transaction_service.dart';
@@ -219,6 +220,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
             const SizedBox(height: 24),
 
+            if (hasData) _buildBarChart(),
+
+            const SizedBox(height: 24),
+
             // Expenses by Category
             if (_expensesByCategory.isNotEmpty) ...[
               Text(
@@ -226,6 +231,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 16),
+              _buildPieChart(),
               _buildCategoryList(),
             ],
 
@@ -514,6 +520,284 @@ class _StatisticsPageState extends State<StatisticsPage> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildPieChart() {
+    if (_expensesByCategory.isEmpty) return const SizedBox.shrink();
+
+    final List<Color> colors = [
+      Colors.blue,
+      Colors.red,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.amber,
+      Colors.indigo,
+    ];
+
+    int colorIndex = 0;
+    final sections = _expensesByCategory.entries.map((entry) {
+      final color = colors[colorIndex % colors.length];
+      colorIndex++;
+
+      return PieChartSectionData(
+        color: color,
+        value: entry.value,
+        title: '${(entry.value / _totalExpense * 100).toStringAsFixed(0)}%',
+        radius: 50,
+        titleStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      );
+    }).toList();
+
+    colorIndex = 0;
+    final indicators = _expensesByCategory.entries.map((entry) {
+      final color = colors[colorIndex % colors.length];
+      colorIndex++;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Indicator(
+          color: color,
+          text: '${entry.key} (\$${entry.value.toStringAsFixed(0)})',
+          isSquare: true,
+        ),
+      );
+    }).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Distribución de Gastos',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            height: 200,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 2,
+                centerSpaceRadius: 40,
+                sections: sections,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 16,
+            runSpacing: 4,
+            alignment: WrapAlignment.center,
+            children: indicators,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBarChart() {
+    final maxVal = _totalIncome > _totalExpense ? _totalIncome : _totalExpense;
+    final interval = maxVal > 0 ? maxVal / 5 : 1.0;
+
+    return Container(
+      height: 350,
+      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Ingresos vs Gastos',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Expanded(
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: maxVal * 1.2,
+                barTouchData: BarTouchData(
+                  enabled: true,
+                  touchTooltipData: BarTouchTooltipData(
+                    tooltipBgColor: Colors.blueGrey,
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  show: true,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      getTitlesWidget: (value, meta) {
+                        const style = TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        );
+                        String text;
+                        switch (value.toInt()) {
+                          case 0:
+                            text = 'Ingresos';
+                            break;
+                          case 1:
+                            text = 'Gastos';
+                            break;
+                          default:
+                            text = '';
+                        }
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          space: 4,
+                          child: Text(text, style: style),
+                        );
+                      },
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 50,
+                      interval: interval,
+                      getTitlesWidget: (value, meta) {
+                        if (value == 0) return const SizedBox();
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            '\$${value >= 1000 ? '${(value / 1000).toStringAsFixed(1)}k' : value.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 10,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: interval,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: Colors.grey.withOpacity(0.1),
+                      strokeWidth: 1,
+                    );
+                  },
+                ),
+                borderData: FlBorderData(show: false),
+                barGroups: [
+                  BarChartGroupData(
+                    x: 0,
+                    barRods: [
+                      BarChartRodData(
+                        toY: _totalIncome,
+                        color: AppTheme.secondaryColor,
+                        width: 40,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  ),
+                  BarChartGroupData(
+                    x: 1,
+                    barRods: [
+                      BarChartRodData(
+                        toY: _totalExpense,
+                        color: AppTheme.accentColor,
+                        width: 40,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class Indicator extends StatelessWidget {
+  const Indicator({
+    super.key,
+    required this.color,
+    required this.text,
+    required this.isSquare,
+    this.size = 16,
+    this.textColor,
+  });
+  final Color color;
+  final String text;
+  final bool isSquare;
+  final double size;
+  final Color? textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: isSquare ? BoxShape.rectangle : BoxShape.circle,
+            color: color,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: textColor,
+          ),
+        ),
+      ],
     );
   }
 }

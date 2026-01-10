@@ -85,18 +85,18 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 const SizedBox(height: 40),
 
-                // Logo/Icono
-                Container(
-                  height: 100,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.primaryGradient,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.account_balance_wallet,
-                    size: 50,
-                    color: Colors.white,
+                // Logo
+                Center(
+                  child: Container(
+                    height: 120,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      image: const DecorationImage(
+                        image: AssetImage('lib/assets/logo.png'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
 

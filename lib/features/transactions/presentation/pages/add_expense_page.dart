@@ -5,6 +5,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../models/expense_model.dart';
 import '../../data/transaction_service.dart';
 import '../../../achievements/data/gamification_service.dart';
+import '../../../budget/data/budget_service.dart';
+import '../../../../core/services/notification_service.dart';
 
 class AddExpensePage extends StatefulWidget {
   const AddExpensePage({Key? key}) : super(key: key);
@@ -20,6 +22,8 @@ class _AddExpensePageState extends State<AddExpensePage> {
   final _transactionService = TransactionService();
   final _firebaseService = FirebaseService();
   final _gamificationService = GamificationService();
+  final _budgetService = BudgetService();
+  final _notificationService = NotificationService();
 
   String _selectedCategory = 'Alimentación';
   bool _isImpulsive = false;
@@ -100,6 +104,52 @@ class _AddExpensePageState extends State<AddExpensePage> {
 
       // Check and unlock achievements
       await _gamificationService.checkAndUnlockAchievements(user.uid);
+
+      // --- Notificaciones Inteligentes (Presupuesto) ---
+      try {
+        final budgetStatus = await _budgetService.getBudgetStatus(user.uid);
+        if (budgetStatus['hasBudget'] == true) {
+          final double remaining = budgetStatus['remaining'] ?? 0;
+          final double progress = budgetStatus['percentageUsed'] ?? 0;
+          final double currentAmount = double.parse(_amountController.text);
+
+          // 1. Alerta Crítica: Exceso de presupuesto
+          if (remaining < 0) {
+            await _notificationService.showNotification(
+              id: 999,
+              title: '¡Alerta de Presupuesto!',
+              body:
+                  'Te has excedido en \$${remaining.abs().toStringAsFixed(2)}. Revisa tus finanzas.',
+            );
+          }
+          // 2. Advertencia: 80% consumido
+          else if (progress > 80 &&
+              (progress -
+                      (currentAmount / (budgetStatus['limit'] ?? 1) * 100)) <=
+                  80) {
+            // Solo notificar si cruzamos el umbral con este gasto
+            await _notificationService.showNotification(
+              id: 998,
+              title: 'Cuidado con tus gastos',
+              body:
+                  'Ya has consumido el ${progress.toStringAsFixed(0)}% de tu presupuesto mensual.',
+            );
+          }
+        }
+
+        // 3. Alerta de Gasto Alto (si > $100 y no hay presupuesto o incluso si lo hay)
+        if (double.parse(_amountController.text) > 100) {
+          await _notificationService.showNotification(
+            id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            title: 'Gasto Considerable',
+            body:
+                'Has registrado un gasto de \$${_amountController.text}. ¿Fue una compra planificada?',
+          );
+        }
+      } catch (e) {
+        print('Error en notificaciones de presupuesto: $e');
+      }
+      // ------------------------------------------------
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

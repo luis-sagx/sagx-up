@@ -53,7 +53,7 @@ lib/
 
 ## 🛠️ Tecnologías
 
-- **Frontend**: Flutter 3.x
+- **Frontend**: Flutter 3.35.6
 - **Backend**: Firebase (Auth + Firestore)
 - **IA**: OpenAI API / Google Gemini
 - **Estado**: Provider / Riverpod

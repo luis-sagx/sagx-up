@@ -8,24 +8,9 @@ class MetricsService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   /// Determina si el usuario está en período PRE o POST
-  /// Primera semana de uso = PRE, después = POST
+  /// Todos los usuarios son POST
   Future<String> determinePeriod(String userId) async {
-    try {
-      // Obtener fecha de creación del usuario
-      final userDoc = await _db.collection('users').doc(userId).get();
-      if (!userDoc.exists) return 'pre';
-
-      final userData = userDoc.data()!;
-      final createdAt = (userData['createdAt'] as Timestamp).toDate();
-
-      // Calcular días desde la creación
-      final daysSinceCreation = DateTime.now().difference(createdAt).inDays;
-
-      // Si tiene más de 7 días, es POST, sino es PRE
-      return daysSinceCreation >= 7 ? 'post' : 'pre';
-    } catch (e) {
-      return 'pre'; // Por defecto PRE
-    }
+    return 'post';
   }
 
   /// Calcula las métricas financieras del mes actual

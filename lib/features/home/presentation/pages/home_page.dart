@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../../admin/presentation/pages/admin_page.dart';
 import '../../../../core/services/firebase_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/data/user_service.dart';
@@ -7,9 +9,16 @@ import '../../../transactions/presentation/pages/add_expense_page.dart';
 import '../../../transactions/presentation/pages/add_income_page.dart';
 import '../../../analytics/presentation/pages/statistics_page.dart';
 import '../../../achievements/presentation/pages/achievements_page.dart';
+import '../../../auth/presentation/pages/login_page.dart';
 import '../../../profile/presentation/pages/edit_profile_page.dart';
+import '../../../profile/presentation/pages/help_page.dart';
+import '../../../profile/presentation/pages/about_page.dart';
+import '../../../profile/presentation/pages/terms_conditions_page.dart';
+import '../../../survey/presentation/pages/survey_page.dart';
+import '../../../survey/data/survey_service.dart';
 import '../../../ai_assistant/presentation/pages/ai_assistant_page.dart';
-import '../../../../services/transaction_service.dart';
+import '../../../transactions/data/transaction_service.dart';
+import '../../../notifications/presentation/pages/notifications_page.dart';
 import '../../../../models/expense_model.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -25,6 +34,7 @@ class _HomePageState extends State<HomePage> {
   final service = FirebaseService();
   final userService = UserService();
   final transactionService = TransactionService();
+  final surveyService = SurveyService();
   int _selectedIndex = 0;
   AppUser? appUser;
   bool isLoadingUser = true;
@@ -103,10 +113,13 @@ class _HomePageState extends State<HomePage> {
 
       await service.logout();
 
-      // The StreamBuilder in main.dart will automatically navigate to LoginPage
-      // Just pop the loading dialog
+      // Navigate to LoginPage
       if (mounted) {
         Navigator.of(context).pop(); // Close loading dialog
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+          (route) => false,
+        );
       }
     } catch (e) {
       // Pop loading dialog if still open
@@ -151,6 +164,20 @@ class _HomePageState extends State<HomePage> {
     if (result == true) {
       _loadUser(); // Reload to update user data
     }
+  }
+
+  // Verificar si se puede mostrar la encuesta POST
+  Future<bool> _canShowPostSurvey() async {
+    if (appUser == null) return false;
+
+    // Verificar si ya completó la encuesta POST
+    final hasCompletedPost = await surveyService.hasCompletedPostSurvey(
+      appUser!.uid,
+    );
+    if (hasCompletedPost) return false;
+
+    // Verificar si han pasado 15+ días
+    return surveyService.canCompletePostSurvey(appUser!.createdAt);
   }
 
   void _showAddTransactionOptions(BuildContext context) {
@@ -387,16 +414,27 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 24,
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationsPage(),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ],
@@ -651,14 +689,66 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 32),
 
             // Menu Items
+            if (user?.email == dotenv.env['ADMIN_EMAIL'])
+              _buildMenuItem(Icons.analytics, 'Panel Investigador', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminPage()),
+                );
+              }),
+
             _buildMenuItem(
               Icons.person_outline,
               'Editar perfil',
               _navigateToEditProfile,
             ),
-            _buildMenuItem(Icons.settings_outlined, 'Configuración', () {}),
-            _buildMenuItem(Icons.help_outline, 'Ayuda', () {}),
-            _buildMenuItem(Icons.info_outline, 'Acerca de', () {}),
+            _buildMenuItem(Icons.help_outline, 'Ayuda', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HelpPage()),
+              );
+            }),
+            _buildMenuItem(Icons.info_outline, 'Acerca de', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutPage()),
+              );
+            }),
+            _buildMenuItem(
+              Icons.description_outlined,
+              'Términos y condiciones',
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TermsConditionsPage(),
+                  ),
+                );
+              },
+            ),
+
+            // Encuesta POST (solo si han pasado 15+ días)
+            FutureBuilder<bool>(
+              future: _canShowPostSurvey(),
+              builder: (context, snapshot) {
+                if (snapshot.data == true) {
+                  return _buildMenuItem(
+                    Icons.assignment_outlined,
+                    'Encuesta Final',
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const SurveyPage(surveyType: 'POST'),
+                        ),
+                      );
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
 
             const SizedBox(height: 16),
 
