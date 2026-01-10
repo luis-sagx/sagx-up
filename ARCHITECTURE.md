@@ -166,14 +166,6 @@ Todos los features dependen de:
 - `core/` (tema, servicios)
 - `shared/` (modelos, widgets)
 
-## 🚀 Próximos Pasos
-
-1. ✅ Crear páginas de transacciones
-2. ✅ Implementar presupuestos
-3. ✅ Añadir analytics y métricas
-4. ✅ Desarrollar gamificación
-5. ✅ Integrar IA
-
 ## 📝 Convenciones de Código
 
 - **Nombres de archivos**: `snake_case.dart`

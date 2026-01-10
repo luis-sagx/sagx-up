@@ -34,23 +34,6 @@ lib/
     └── widgets/
 ```
 
-## 🚀 Funcionalidades
-
-### ✅ Implementado
-
-- ✅ Autenticación (Email/Password)
-- ✅ Diseño minimalista y moderno
-- ✅ Manejo robusto de errores
-- ✅ Arquitectura escalable
-- ✅ Modelos de datos completos
-
-### 🔄 En Desarrollo
-
-- 🔄 Registro de transacciones
-- 🔄 Gestión de presupuestos
-- 🔄 Dashboard con métricas
-- 🔄 Sistema de logros
-
 ## 🛠️ Tecnologías
 
 - **Frontend**: Flutter 3.35.6
@@ -93,8 +76,6 @@ flutter run
 # Unit tests
 flutter test
 
-# Integration tests
-flutter drive --target=test_driver/app.dart
 ```
 
 ## 📄 Base de Datos (Firestore)
@@ -145,14 +126,10 @@ Este proyecto es parte de una investigación para evaluar el impacto de aplicaci
 ### Metodología
 
 1. **Pre-test**: Evaluación inicial de hábitos financieros
-2. **Intervención**: Uso de la app por 4-8 semanas
+2. **Intervención**: Uso de la app por 2 semanas
 3. **Post-test**: Re-evaluación de comportamiento
 4. **Análisis**: Comparación de métricas Pre/Post
 
 ## 👥 Contribuir
 
 Este proyecto está en desarrollo activo. Sugerencias y contribuciones son bienvenidas.
-
-## 📝 Licencia
-
-[MIT License](LICENSE)
