@@ -16,6 +16,8 @@ class NotificationService {
 
   Future<void> init() async {
     tz.initializeTimeZones();
+    // Configurar zona horaria de Ecuador (GMT-5)
+    tz.setLocalLocation(tz.getLocation('America/Guayaquil'));
 
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -29,6 +31,13 @@ class NotificationService {
         // Handle notification tap
       },
     );
+
+    // Solicitar permisos en Android 13+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestNotificationsPermission();
   }
 
   Future<void> showNotification({
@@ -58,17 +67,43 @@ class NotificationService {
   }
 
   Future<void> scheduleDailyReminder() async {
+    // Cancelar notificaciones previas
+    await cancelAllReminders();
+
+    // Programar notificación de 1 PM
     await flutterLocalNotificationsPlugin.zonedSchedule(
-      0,
-      '¡No olvides tus finanzas!',
-      'Registra tus gastos e ingresos del día para mantener el control.',
-      _nextInstanceOf8PM(),
+      1, // ID único para la notificación de 1 PM
+      '💰 Recordatorio de Control Financiero',
+      '¡No olvides anotar tus gastos o ingresos del día!',
+      _nextInstanceOfTime(13, 0), // 1:00 PM
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'daily_reminder_channel',
           'Recordatorios Diarios',
-          channelDescription:
-              'Recordatorio diario para registrar transacciones',
+          channelDescription: 'Recordatorios para registrar tus transacciones',
+          importance: Importance.high,
+          priority: Priority.high,
+          playSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+
+    // Programar notificación de 8 PM
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      2, // ID único para la notificación de 8 PM
+      '📊 Revisa tu Control Financiero',
+      '¿Ya registraste todas tus transacciones de hoy?',
+      _nextInstanceOfTime(20, 0), // 8:00 PM
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_reminder_channel',
+          'Recordatorios Diarios',
+          channelDescription: 'Recordatorios para registrar tus transacciones',
+          importance: Importance.high,
+          priority: Priority.high,
+          playSound: true,
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -76,18 +111,29 @@ class NotificationService {
     );
   }
 
-  tz.TZDateTime _nextInstanceOf8PM() {
+  tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
       now.year,
       now.month,
       now.day,
-      20,
+      hour,
+      minute,
     );
+    // Si la hora ya pasó hoy, programar para mañana
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;
+  }
+
+  Future<void> cancelAllReminders() async {
+    await flutterLocalNotificationsPlugin.cancel(1); // Cancelar 1 PM
+    await flutterLocalNotificationsPlugin.cancel(2); // Cancelar 8 PM
+  }
+
+  Future<void> cancelAllNotifications() async {
+    await flutterLocalNotificationsPlugin.cancelAll();
   }
 }
