@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'core/config/env_config.dart';
 import 'core/services/notification_service.dart';
@@ -8,14 +9,17 @@ import 'features/home/presentation/pages/splash_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Cargar variables de entorno
+  // Cargar variables de entorno (opcional)
   await EnvConfig.load();
 
-  // Inicializar Firebase
-  await Firebase.initializeApp();
+  // Inicializar Firebase con opciones de plataforma
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Inicializar Notificaciones
   await NotificationService().init();
+
+  // Programar recordatorios diarios a las 1 PM y 8 PM (hora Ecuador)
+  await NotificationService().scheduleDailyReminder();
 
   runApp(const MyApp());
 }

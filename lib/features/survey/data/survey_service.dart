@@ -72,12 +72,12 @@ class SurveyService {
     }
   }
 
-  // Verificar si han pasado 14 días desde el registro
+  // Verificar si han pasado los días desde el registro
   bool canCompletePostSurvey(DateTime registrationDate) {
     final daysSinceRegistration = DateTime.now()
         .difference(registrationDate)
         .inDays;
-    return daysSinceRegistration >= 2;
+    return daysSinceRegistration >= 10;
   }
 
   // Obtener todas las encuestas (para panel de admin)
